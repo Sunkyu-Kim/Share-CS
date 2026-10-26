@@ -1,0 +1,451 @@
+<title>트리와 이진 탐색 트리</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+:root{--bg:#f5f6f2;--fg:#1c2230;--muted:#5b6476;--card:#fff;--line:#d9dce3;--accent:#2d5bd1;--accent-soft:#e3ebff;--hot:#e0572f;--hot-soft:#fde6dc;--ok:#1d8a5a;--code:#f0f2f7;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#111620;--fg:#e7ebf3;--muted:#9ba4b6;--card:#1a2130;--line:#2c3547;--accent:#7ea2ff;--accent-soft:#1f2c4d;--hot:#ff8a65;--hot-soft:#3a2420;--ok:#4cc38a;--code:#141b28;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#111620;--fg:#e7ebf3;--muted:#9ba4b6;--card:#1a2130;--line:#2c3547;--accent:#7ea2ff;--accent-soft:#1f2c4d;--hot:#ff8a65;--hot-soft:#3a2420;--ok:#4cc38a;--code:#141b28;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Noto Sans KR",system-ui,sans-serif;line-height:1.6;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+h1{font-size:1.5rem;margin:0 0 4px}h2{font-size:1.2rem;margin:0 0 8px}h3{font-size:1rem;margin:14px 0 6px}
+.sub{color:var(--muted);margin:0 0 14px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.tab{border:1px solid var(--line);background:var(--card);color:var(--fg);padding:7px 13px;border-radius:999px;cursor:pointer;font:inherit;font-size:.9rem}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.hidden-panel{display:none}
+button.btn,select,input[type=number]{font:inherit;font-size:.9rem;border-radius:8px;padding:6px 11px;border:1px solid var(--accent);background:transparent;color:var(--accent)}
+button.btn.primary{background:var(--accent);color:#fff}
+button.btn:disabled{opacity:.4;cursor:default}
+select,input[type=number]{color:var(--fg);border-color:var(--line);background:var(--bg)}
+button:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+@media (max-width:700px){.split{grid-template-columns:minmax(0,1fr)}}
+.codebox{background:var(--code);border:1px solid var(--line);border-radius:10px;overflow-x:auto;font-family:"Courier New",monospace;font-size:.88rem;padding:8px 0}
+.ln{display:block;padding:1px 10px;white-space:pre;min-width:100%;width:max-content}
+.ln.cur{background:var(--hot-soft);box-shadow:inset 3px 0 0 var(--hot);font-weight:700}
+.ln i{font-style:normal;color:var(--muted);display:inline-block;width:2em;text-align:right;margin-right:10px;user-select:none}
+.state{background:var(--accent-soft);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.msg{font-size:1rem;min-height:2.6em;margin-bottom:8px}
+.vars{font-family:"Courier New",monospace;font-size:.9rem;display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:6px;padding:2px 8px}
+.chip b{color:var(--accent)}
+.boxes{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.cell{min-width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:2px solid var(--line);border-radius:8px;font-weight:700;background:var(--card)}
+.cell.hi{border-color:var(--hot);color:var(--hot);background:var(--hot-soft)}
+.seg-label{font-size:.82rem;color:var(--muted);margin-top:6px}
+.node{fill:var(--card);stroke:var(--muted);stroke-width:2}
+.node.seen{fill:var(--accent-soft);stroke:var(--accent)}
+.node.cur{fill:var(--hot);stroke:var(--hot)}
+.edge{stroke:var(--line);stroke-width:3}
+svg text{fill:var(--fg);font-family:inherit}
+svg .nt{font-weight:700;font-size:15px}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--accent-soft)}
+.scroll{overflow-x:auto}
+ul{padding-left:20px;margin:6px 0}li{margin:4px 0}
+.note{font-size:.9rem;color:var(--muted);margin-top:8px}
+.quiz-q{margin:12px 0 4px;font-weight:700}
+.quiz-q label{display:block;font-weight:400;padding:3px 0;cursor:pointer}
+.fb{margin-top:4px;font-size:.95rem;min-height:1.4em}
+.ok{color:var(--ok);font-weight:700}.warn{color:var(--hot);font-weight:700}
+.tl td:first-child{white-space:nowrap;font-weight:700}
+</style>
+
+<header>
+  <h1>트리와 이진 탐색 트리</h1>
+  <p class="sub">삽입, 탐색, 순회를 코드 줄과 트리 그림을 함께 보며 추적합니다.</p>
+</header>
+<nav class="tabs" role="tablist">
+  <button class="tab" role="tab" data-tab="concept" aria-selected="true">트리 개념</button>
+  <button class="tab" role="tab" data-tab="ins" aria-selected="false">삽입 추적</button>
+  <button class="tab" role="tab" data-tab="sea" aria-selected="false">탐색 추적</button>
+  <button class="tab" role="tab" data-tab="trav" aria-selected="false">순회 추적</button>
+  <button class="tab" role="tab" data-tab="cx" aria-selected="false">높이와 복잡도</button>
+  <button class="tab" role="tab" data-tab="quiz" aria-selected="false">확인 문제</button>
+</nav>
+
+<section id="p-concept" class="panel" role="tabpanel">
+  <h2>트리의 언어와 BST 규칙</h2>
+  <div class="scroll"><svg id="c-svg" viewBox="0 0 300 200" width="100%" role="img" aria-label="예제 트리"></svg></div>
+  <table>
+    <tr><th>용어</th><th>뜻 (아래 예제 기준)</th></tr>
+    <tr><td>노드</td><td>값을 담는 자리 (50, 30, 70, …)</td></tr>
+    <tr><td>간선</td><td>부모와 자식을 잇는 선</td></tr>
+    <tr><td>루트</td><td>맨 위의 50</td></tr>
+    <tr><td>리프</td><td>자식이 없는 20, 40, 60, 80</td></tr>
+    <tr><td>높이</td><td>루트에서 가장 먼 노드까지 간선 수 (이 트리는 2)</td></tr>
+  </table>
+  <h3>BST 규칙</h3>
+  <ul>
+    <li>왼쪽 부분 트리의 모든 값 &lt; 현재 값</li>
+    <li>오른쪽 부분 트리의 모든 값 &gt; 현재 값</li>
+    <li>이진 트리는 자식이 최대 2개라는 조건만 있고 값의 순서 규칙은 없습니다.</li>
+    <li>이 코드는 같은 키를 다시 넣으면 무시합니다.</li>
+  </ul>
+</section>
+
+<section id="p-ins" class="panel hidden-panel" role="tabpanel">
+  <div class="toolbar">
+    <label>입력 순서 <input id="i-input" type="text" value="50,30,70,20,40,60,80" style="width:260px"></label>
+    <button class="btn" id="i-apply">적용</button>
+  </div>
+  <div class="split">
+    <div><div class="codebox" id="i-code"></div></div>
+    <div>
+      <svg id="i-svg" viewBox="0 0 300 200" width="100%" role="img" aria-label="삽입 중인 트리"></svg>
+      <div class="state">
+        <div class="msg" id="i-msg"></div>
+        <div class="vars" id="i-vars"></div>
+      </div>
+      <div class="toolbar">
+        <button class="btn" id="i-first">처음</button>
+        <button class="btn" id="i-prev">이전</button>
+        <button class="btn primary" id="i-next">다음</button>
+        <button class="btn" id="i-last">끝</button>
+        <button class="btn" id="i-play">자동 재생</button>
+        <span class="note" id="i-count"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="p-sea" class="panel hidden-panel" role="tabpanel">
+  <div class="toolbar">
+    <label>찾을 값 <input id="s-key" type="number" value="60" style="width:110px"></label>
+    <button class="btn" id="s-apply">탐색 시작</button>
+    <span class="note">예제 트리: 50, 30, 70, 20, 40, 60, 80</span>
+  </div>
+  <div class="split">
+    <div><div class="codebox" id="s-code"></div></div>
+    <div>
+      <svg id="s-svg" viewBox="0 0 300 200" width="100%" role="img" aria-label="탐색 중인 트리"></svg>
+      <div class="state">
+        <div class="msg" id="s-msg"></div>
+        <div class="vars" id="s-vars"></div>
+      </div>
+      <div class="toolbar">
+        <button class="btn" id="s-first">처음</button>
+        <button class="btn" id="s-prev">이전</button>
+        <button class="btn primary" id="s-next">다음</button>
+        <button class="btn" id="s-last">끝</button>
+        <button class="btn" id="s-play">자동 재생</button>
+        <span class="note" id="s-count"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="p-trav" class="panel hidden-panel" role="tabpanel">
+  <div class="toolbar">
+    <label>순회 <select id="t-mode">
+      <option value="pre">전위 (현재 → 왼쪽 → 오른쪽)</option>
+      <option value="in" selected>중위 (왼쪽 → 현재 → 오른쪽)</option>
+      <option value="post">후위 (왼쪽 → 오른쪽 → 현재)</option>
+    </select></label>
+  </div>
+  <div class="split">
+    <div><div class="codebox" id="t-code"></div></div>
+    <div>
+      <svg id="t-svg" viewBox="0 0 300 200" width="100%" role="img" aria-label="순회 중인 트리"></svg>
+      <div class="state">
+        <div class="msg" id="t-msg"></div>
+        <div class="vars" id="t-vars"></div>
+      </div>
+      <div class="toolbar">
+        <button class="btn" id="t-first">처음</button>
+        <button class="btn" id="t-prev">이전</button>
+        <button class="btn primary" id="t-next">다음</button>
+        <button class="btn" id="t-last">끝</button>
+        <button class="btn" id="t-play">자동 재생</button>
+        <span class="note" id="t-count"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="p-cx" class="panel hidden-panel" role="tabpanel">
+  <h2>높이와 시간 복잡도</h2>
+  <div class="toolbar">
+    <label>입력 순서 <input id="c-input" type="text" value="50,30,70,20,40,60,80" style="width:260px"></label>
+    <button class="btn" id="c-bal">균형 예: 50,30,70,20,40,60,80</button>
+    <button class="btn" id="c-deg">편향 예: 10,20,30,40,50,60,70</button>
+  </div>
+  <div class="scroll"><svg id="c-tree" viewBox="0 0 300 200" width="100%" role="img" aria-label="비교용 트리"></svg></div>
+  <div class="state" id="c-stats"></div>
+  <div class="scroll"><table>
+    <tr><th>연산</th><th>균형 잡힌 BST</th><th>편향 BST</th></tr>
+    <tr><td>탐색</td><td>O(log n)</td><td>O(n)</td></tr>
+    <tr><td>삽입 1회</td><td>O(log n)</td><td>O(n)</td></tr>
+    <tr><td>중위 순회 전체</td><td>O(n)</td><td>O(n)</td></tr>
+  </table></div>
+  <p class="note">탐색과 삽입은 루트에서 한 경로만 따라가므로 비용이 높이 h에 비례합니다. 균형이면 h ≈ log n, 편향이면 h ≈ n입니다.</p>
+</section>
+
+<section id="p-quiz" class="panel hidden-panel" role="tabpanel">
+  <h2>확인 문제</h2>
+  <p class="note">답을 고른 뒤 확인을 누르고, 근거를 말로 설명해 보세요.</p>
+  <div id="quiz"></div>
+</section>
+
+<script>
+(function(){
+  // ---------- 탭 ----------
+  const tabs=[...document.querySelectorAll('.tab')];
+  tabs.forEach(t=>t.addEventListener('click',()=>{
+    tabs.forEach(x=>x.setAttribute('aria-selected',x===t?'true':'false'));
+    document.querySelectorAll('[role=tabpanel]').forEach(p=>p.classList.add('hidden-panel'));
+    document.getElementById('p-'+t.dataset.tab).classList.remove('hidden-panel');
+  }));
+
+  function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function codeHTML(lines,cur){
+    return lines.map((t,i)=>`<span class="ln${i===cur?' cur':''}"><i>${i}</i>${escapeHtml(t)}</span>`).join('');
+  }
+  function makePlayer(prefix, renderFn){
+    const P={steps:[],i:0,timer:null};
+    const $=id=>document.getElementById(prefix+id);
+    function show(){
+      if(!P.steps.length) return;
+      renderFn(P.steps[P.i]);
+      $('prev').disabled=P.i===0; $('first').disabled=P.i===0;
+      $('next').disabled=P.i>=P.steps.length-1; $('last').disabled=P.i>=P.steps.length-1;
+      $('count').textContent=`단계 ${P.i+1} / ${P.steps.length}`;
+    }
+    function stop(){ if(P.timer){clearInterval(P.timer);P.timer=null;$('play').textContent='자동 재생';} }
+    $('next').onclick=()=>{ if(P.i<P.steps.length-1){P.i++;show();} };
+    $('prev').onclick=()=>{ if(P.i>0){P.i--;show();} };
+    $('first').onclick=()=>{ P.i=0; show(); };
+    $('last').onclick=()=>{ P.i=P.steps.length-1; show(); };
+    $('play').onclick=()=>{
+      if(P.timer){ stop(); return; }
+      $('play').textContent='일시정지';
+      P.timer=setInterval(()=>{ if(P.i>=P.steps.length-1){stop();return;} P.i++; show(); },900);
+    };
+    return { load(steps){ stop(); P.steps=steps; P.i=0; show(); } };
+  }
+
+  // ---------- 트리 기본 ----------
+  function insertPlain(t,key){
+    if(t===null) return {key,left:null,right:null};
+    if(key<t.key) t.left=insertPlain(t.left,key);
+    else if(key>t.key) t.right=insertPlain(t.right,key);
+    return t;
+  }
+  function buildTree(keys){ let r=null; keys.forEach(k=>{ r=insertPlain(r,k); }); return r; }
+  function clone(t){ return t===null?null:{key:t.key,left:clone(t.left),right:clone(t.right)}; }
+  function height(t){ return t===null?-1:1+Math.max(height(t.left),height(t.right)); }
+  function countNodes(t){ return t===null?0:1+countNodes(t.left)+countNodes(t.right); }
+
+  // st: {cur, path:[keys], marks:{key:label}}
+  function drawTree(svgId, tree, st){
+    const svg=document.getElementById(svgId);
+    st=st||{};
+    if(tree===null){ svg.setAttribute('viewBox','0 0 300 60'); svg.innerHTML='<text x="20" y="34" font-size="14">(빈 트리)</text>'; return; }
+    const nodes=[]; let idx=0;
+    function lay(t,d){ if(!t) return; lay(t.left,d+1); t.x=idx*60+40; t.y=d*64+40; nodes.push(t); idx++; lay(t.right,d+1); }
+    lay(tree,0);
+    const H=height(tree)*64+80, W=idx*60+80;
+    svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    let h='';
+    nodes.forEach(t=>{
+      if(t.left) h+=`<line x1="${t.x}" y1="${t.y}" x2="${t.left.x}" y2="${t.left.y}" stroke="var(--line)" stroke-width="3"/>`;
+      if(t.right) h+=`<line x1="${t.x}" y1="${t.y}" x2="${t.right.x}" y2="${t.right.y}" stroke="var(--line)" stroke-width="3"/>`;
+    });
+    nodes.forEach(t=>{
+      let cls='node';
+      if(st.cur===t.key) cls+=' cur';
+      else if(st.path&&st.path.includes(t.key)) cls+=' seen';
+      h+=`<circle class="${cls}" cx="${t.x}" cy="${t.y}" r="18"/><text class="nt" x="${t.x}" y="${t.y+5}" text-anchor="middle">${t.key}</text>`;
+      if(st.marks&&st.marks[t.key]!==undefined) h+=`<text x="${t.x+22}" y="${t.y-12}" font-size="12" font-weight="700" fill="var(--hot)">${st.marks[t.key]}</text>`;
+    });
+    svg.innerHTML=h;
+  }
+
+  // ---------- 삽입 ----------
+  const INS_CODE=[
+    'def insert(t, key):',
+    '    if t is None:',
+    '        return Node(key)',
+    '    if key < t.key:',
+    '        t.left = insert(t.left, key)',
+    '    elif key > t.key:',
+    '        t.right = insert(t.right, key)',
+    '    return t'
+  ];
+  let rootNow=null;
+  function snapIns(l,cur,path,msg,vars){
+    return {l,code:INS_CODE,tree:clone(rootNow),st:{cur,path:[...path]},msg,vars:vars||{}};
+  }
+  function* insRec(t,key,path){
+    if(t===null){
+      yield snapIns(1,null,path,`${key}의 자리 도달: 비어 있음 → 새 노드 필요`,{key});
+      yield snapIns(2,null,path,`Node(${key}) 생성해서 반환`,{key});
+      return {key,left:null,right:null};
+    }
+    yield snapIns(1,t.key,path,`${t.key}와 비교 시작 (빈 자리 아님)`,{key,t:t.key});
+    if(key<t.key){
+      yield snapIns(3,t.key,path,`${key} < ${t.key} → 왼쪽으로`,{key,t:t.key});
+      const nl=yield* insRec(t.left,key,[...path,t.key]);
+      t.left=nl;
+      yield snapIns(4,t.key,path,`${t.key}.left에 ${key} 연결`,{key,t:t.key});
+    } else if(key>t.key){
+      yield snapIns(5,t.key,path,`${key} > ${t.key} → 오른쪽으로`,{key,t:t.key});
+      const nr=yield* insRec(t.right,key,[...path,t.key]);
+      t.right=nr;
+      yield snapIns(6,t.key,path,`${t.key}.right에 ${key} 연결`,{key,t:t.key});
+    } else {
+      yield snapIns(7,t.key,path,`${key}은 이미 있음 → 무시`,{key});
+      return t;
+    }
+    yield snapIns(7,t.key,path,`${t.key} 반환 (부모에 연결된 부분 트리의 루트)`,{key});
+    return t;
+  }
+  function* insertG(keys){
+    rootNow=null;
+    yield snapIns(0,null,[],'빈 트리에서 시작');
+    for(const k of keys){
+      rootNow=yield* insRec(rootNow,k,[]);
+      yield snapIns(7,k,[],`${k} 삽입 완료`,{key:k});
+    }
+  }
+  const insPlayer=makePlayer('i-',st=>{
+    document.getElementById('i-code').innerHTML=codeHTML(st.l===0?INS_CODE:st.code,st.l>0?st.l:-1);
+    document.getElementById('i-msg').textContent=st.msg;
+    document.getElementById('i-vars').innerHTML=Object.entries(st.vars).map(([k,v])=>`<span class="chip">${k} = <b>${v}</b></span>`).join('');
+    drawTree('i-svg',st.tree,st.st);
+  });
+  function insLoad(){
+    const keys=document.getElementById('i-input').value.split(',').map(x=>parseInt(x.trim(),10)).filter(x=>!isNaN(x));
+    insPlayer.load([...insertG(keys.length?keys:[50,30,70,20,40,60,80])]);
+  }
+  document.getElementById('i-apply').onclick=insLoad;
+  insLoad();
+
+  // ---------- 탐색 ----------
+  const SEA_CODE=[
+    'def search(t, key):',
+    '    while t is not None:',
+    '        if key == t.key:',
+    '            return True',
+    '        if key < t.key:',
+    '            t = t.left',
+    '        else:',
+    '            t = t.right',
+    '    return False'
+  ];
+  function* searchG(key){
+    const tree=buildTree([50,30,70,20,40,60,80]);
+    let t=tree; const path=[];
+    const S=(l,cur,msg,vars)=>({l,code:SEA_CODE,tree,st:{cur,path:[...path]},msg,vars:{key,t:cur===null?'None':cur,...(vars||{})}});
+    while(true){
+      yield S(1,t?t.key:null,t?`t가 None이 아님 (t = ${t.key})`:'t가 None → 탐색 종료');
+      if(t===null) break;
+      if(key===t.key){ yield S(2,t.key,`${key} == ${t.key} → 찾음`); yield S(3,t.key,'True 반환'); return; }
+      path.push(t.key);
+      if(key<t.key){
+        yield S(4,t.key,`${key} < ${t.key} → 왼쪽 부분 트리만 본다`);
+        yield S(5,t.key,`t = t.left`);
+        t=t.left;
+      } else {
+        yield S(6,t.key,`${key} > ${t.key} → 왼쪽 부분 트리는 제외`);
+        yield S(7,t.key,`t = t.right`);
+        t=t.right;
+      }
+    }
+    yield S(8,null,`${key}는 트리에 없음 → False 반환`);
+  }
+  const seaPlayer=makePlayer('s-',st=>{
+    document.getElementById('s-code').innerHTML=codeHTML(st.code,st.l);
+    document.getElementById('s-msg').textContent=st.msg;
+    document.getElementById('s-vars').innerHTML=Object.entries(st.vars).map(([k,v])=>`<span class="chip">${k} = <b>${v}</b></span>`).join('');
+    drawTree('s-svg',st.tree,st.st);
+  });
+  function seaLoad(){
+    const key=parseInt(document.getElementById('s-key').value,10);
+    seaPlayer.load([...searchG(isNaN(key)?60:key)]);
+  }
+  document.getElementById('s-apply').onclick=seaLoad;
+  seaLoad();
+
+  // ---------- 순회 ----------
+  const TRAV={
+    pre:{code:['def preorder(t, out):','    if t is not None:','        out.append(t.key)','        preorder(t.left, out)','        preorder(t.right, out)'],app:2,seq:['app','L','R'],name:'전위'},
+    in:{code:['def inorder(t, out):','    if t is not None:','        inorder(t.left, out)','        out.append(t.key)','        inorder(t.right, out)'],app:3,seq:['L','app','R'],name:'중위'},
+    post:{code:['def postorder(t, out):','    if t is not None:','        postorder(t.left, out)','        postorder(t.right, out)','        out.append(t.key)'],app:4,seq:['L','R','app'],name:'후위'}
+  };
+  function* travG(mode){
+    const T=TRAV[mode];
+    const tree=buildTree([50,30,70,20,40,60,80]);
+    const out=[];
+    const marks={};
+    const S=(l,cur,msg)=>({l,code:T.code,tree,st:{cur,marks:{...marks}},msg,vars:{out:'['+out.join(', ')+']'}});
+    function* rec(t){
+      if(t===null) return;
+      yield S(1,t.key,`${t.key} 방문 준비 (not None)`);
+      for(const a of T.seq){
+        if(a==='app'){ out.push(t.key); marks[t.key]=out.length; yield S(T.app,t.key,`${t.key}을 out에 추가`); }
+        else if(a==='L'){ yield S(a==='L'&&mode==='pre'?3:(mode==='post'?2:2),t.key,`${t.key}의 왼쪽 호출`); yield* rec(t.left); }
+        else { yield S(mode==='post'?3:4,t.key,`${t.key}의 오른쪽 호출`); yield* rec(t.right); }
+      }
+    }
+    yield* rec(tree);
+    yield {l:-1,code:T.code,tree,st:{cur:null,marks:{...marks}},msg:`${T.name} 순회 완료: [${out.join(', ')}]`,vars:{out:'['+out.join(', ')+']'}};
+  }
+  const travPlayer=makePlayer('t-',st=>{
+    document.getElementById('t-code').innerHTML=codeHTML(st.code,st.l);
+    document.getElementById('t-msg').textContent=st.msg;
+    document.getElementById('t-vars').innerHTML=Object.entries(st.vars).map(([k,v])=>`<span class="chip">${k} = <b>${v}</b></span>`).join('');
+    drawTree('t-svg',st.tree,st.st);
+  });
+  function travLoad(){ travPlayer.load([...travG(document.getElementById('t-mode').value)]); }
+  document.getElementById('t-mode').onchange=travLoad;
+  travLoad();
+
+  // ---------- 높이와 복잡도 ----------
+  function cLoad(str){
+    const keys=str.split(',').map(x=>parseInt(x.trim(),10)).filter(x=>!isNaN(x));
+    const t=buildTree(keys.length?keys:[50]);
+    drawTree('c-tree',t,{});
+    const n=countNodes(t), h=height(t);
+    // 가장 큰 키 탐색 비교 횟수 (방문한 노드 수)
+    const mx=Math.max(...keys);
+    let cur=t, cmp=0;
+    while(cur){ cmp++; if(cur.key===mx) break; cur=mx<cur.key?cur.left:cur.right; }
+    document.getElementById('c-stats').innerHTML=`n = <b>${n}</b> · 높이 h = <b>${h}</b> (간선 수) · 가장 큰 값 ${mx}을 찾을 때 비교 <b>${cmp}</b>번 · 탐색 비용 O(h)`;
+  }
+  const cIn=document.getElementById('c-input');
+  cIn.addEventListener('input',()=>cLoad(cIn.value));
+  document.getElementById('c-bal').onclick=()=>{ cIn.value='50,30,70,20,40,60,80'; cLoad(cIn.value); };
+  document.getElementById('c-deg').onclick=()=>{ cIn.value='10,20,30,40,50,60,70'; cLoad(cIn.value); };
+  cLoad(cIn.value);
+
+  // ---------- 개념 탭의 예제 ----------
+  drawTree('c-svg', buildTree([50,30,70,20,40,60,80]), {});
+
+  // ---------- 확인 문제 ----------
+  const Q=[
+    {q:'위 BST(50, 30, 70, 20, 40, 60, 80)에서 65를 찾을 때 비교하는 노드는 몇 개인가?',opts:['2개','3개','4개'],a:1,
+      why:'50, 70, 60 세 노드를 비교합니다. 60의 오른쪽이 None이므로 65는 없다고 결론짓습니다.'},
+    {q:'BST의 탐색은 항상 O(log n)인가?',opts:['예','아니오','노드 수와 무관하다'],a:1,
+      why:'편향되면 높이가 n에 가까워져 탐색이 O(n)이 됩니다. 로그 시간은 균형이 맞을 때만 보장됩니다.'},
+    {q:'10, 20, 30을 순서대로 넣은 BST의 높이(간선 수)는?',opts:['1','2','3'],a:1,
+      why:'10 → 20 → 30이 모두 오른쪽으로 이어져 간선이 2개입니다.'},
+    {q:'중위 순회 결과가 BST에서 오름차순이 되는 이유는?',opts:['왼쪽 값이 현재보다 작고 오른쪽 값이 더 크기 때문','노드를 큐에 넣어 방문하기 때문','높이가 모두 같기 때문'],a:0,
+      why:'중위 순회는 왼쪽 부분 트리 → 현재 → 오른쪽 부분 트리 순서이므로 BST 규칙 때문에 작은 값부터 나옵니다.'}
+  ];
+  const quizEl=document.getElementById('quiz');
+  quizEl.innerHTML=Q.map((x,i)=>`<div class="quiz-q">${i+1}. ${x.q}</div>
+    <div>${x.opts.map((o,k)=>`<label><input type="radio" name="q${i}" value="${k}"> ${o}</label>`).join('')}</div>
+    <button class="btn" data-check="${i}">확인</button>
+    <div class="fb" id="fb${i}"></div>`).join('');
+  quizEl.querySelectorAll('[data-check]').forEach(b=>b.addEventListener('click',()=>{
+    const i=+b.dataset.check, sel=quizEl.querySelector(`input[name="q${i}"]:checked`);
+    const fb=document.getElementById('fb'+i);
+    if(!sel){fb.innerHTML='<span class="warn">먼저 답을 고르세요.</span>';return;}
+    const ok=+sel.value===Q[i].a;
+    fb.innerHTML=(ok?'<span class="ok">맞았습니다.</span> ':'<span class="warn">다시 생각해 보세요.</span> ')+Q[i].why;
+  }));
+})();
+</script>
